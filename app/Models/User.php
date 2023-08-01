@@ -17,11 +17,7 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    protected $guarded = ['id'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -41,4 +37,25 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function hobbies() {
+        return $this->belongsToMany(Hobby::class);
+    }
+
+    public function sentFriendRequests(){
+        return $this->hasMany(Friend::class, 'sender_id');
+    }
+
+    public function receivedFriendRequests(){
+        return $this->hasMany(Friend::class, 'recipient_id');
+    }
+
+    public function friends(){
+        return $this->belongsToMany(User::class, 'friends', 'sender_id', 'recipient_id')
+                    ->where('status', 'accepted')
+                    ->orWhere(function ($query) {
+                        $query->where('sender_id', $this->id)
+                              ->where('status', 'accepted');
+                    });
+    }
 }
